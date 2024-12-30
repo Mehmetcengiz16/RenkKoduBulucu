@@ -23,8 +23,8 @@ Bu uygulama, yüklenen resimlerdeki baskın renkleri analiz eden ve gösteren bi
 
 1. Repoyu klonlayın:
 ```bash
-git clone https://github.com/Mehmetcengiz16/renkkodu.git
-cd renkkodu
+git clone https://github.com/Mehmetcengiz16/RenkKoduBulucu.git
+cd RenkKoduBulucu
 ```
 
 2. Bağımlılıkları yükleyin:
