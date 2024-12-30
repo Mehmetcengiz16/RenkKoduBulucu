@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renk Kodu Analizi</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            background: linear-gradient(to bottom right, #1a1a2e, #16213e);
+            min-height: 100vh;
+        }
+        .color-box {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .color-box:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .drop-zone:hover {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .drop-zone.dragover {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.15);
+            transform: scale(1.02);
+        }
+        .glass-card {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .color-preview {
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+        .gradient-text {
+            background: linear-gradient(45deg, #6366f1, #8b5cf6, #d946ef);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: 200% 200%;
+            animation: gradient 5s ease infinite;
+        }
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .color-item {
+            aspect-ratio: 1;
+            border-radius: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .color-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 0.25rem;
+            font-size: 0.75rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .color-item:hover .color-info {
+            opacity: 1;
+        }
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .tab {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.5);
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    <div class="container mx-auto px-4 py-12">
+        <h1 class="text-5xl font-bold text-center gradient-text mb-12">Renk Kodu Analizi</h1>
+        
+        <div class="max-w-4xl mx-auto">
+            <div id="dropZone" class="drop-zone rounded-2xl p-12 text-center cursor-pointer mb-12 transform transition-all relative">
+                <div class="mb-6">
+                    <svg class="mx-auto h-16 w-16 text-indigo-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <p class="text-lg text-indigo-200 mb-2">Resmi buraya sürükleyin veya tıklayarak seçin</p>
+                <p class="text-sm text-indigo-300">veya bir resmi kopyalayıp buraya yapıştırın</p>
+                <input type="file" id="fileInput" class="hidden" accept="image/*">
+            </div>
+
+            <div id="preview" class="hidden mb-12">
+                <div class="glass-card rounded-2xl p-6">
+                    <img id="imagePreview" class="max-w-full h-auto rounded-xl shadow-2xl mx-auto" src="" alt="Yüklenen resim">
+                </div>
+            </div>
+
+            <div id="results" class="hidden">
+                <div class="tabs">
+                    <div class="tab active" data-tab="dominant">Baskın Renkler</div>
+                    <div class="tab" data-tab="all">Tüm Renkler</div>
+                    <div class="tab" data-tab="marked">İşaretlenmiş Resim</div>
+                </div>
+
+                <div id="dominantColors" class="tab-content glass-card rounded-2xl p-6">
+                    <div id="colorList" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Baskın renkler buraya eklenecek -->
+                    </div>
+                </div>
+
+                <div id="allColors" class="tab-content glass-card rounded-2xl p-6 hidden">
+                    <div class="color-grid" id="allColorsList">
+                        <!-- Tüm renkler buraya eklenecek -->
+                    </div>
+                </div>
+
+                <div id="markedImage" class="tab-content glass-card rounded-2xl p-6 hidden">
+                    <img id="markedImagePreview" class="max-w-full h-auto rounded-xl shadow-2xl mx-auto" src="" alt="İşaretlenmiş resim">
+                </div>
+            </div>
+
+            <div id="loading" class="hidden py-12">
+                <div class="flex justify-center items-center">
+                    <div class="animate-spin rounded-full h-16 w-16 border-4 border-indigo-500 border-t-transparent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const imagePreview = document.getElementById('imagePreview');
+        const results = document.getElementById('results');
+        const colorList = document.getElementById('colorList');
+        const allColorsList = document.getElementById('allColorsList');
+        const markedImagePreview = document.getElementById('markedImagePreview');
+        const loading = document.getElementById('loading');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        // Tab işlemleri
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const tabName = tab.dataset.tab;
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                if (tabName === 'dominant') {
+                    document.getElementById('dominantColors').classList.remove('hidden');
+                } else if (tabName === 'all') {
+                    document.getElementById('allColors').classList.remove('hidden');
+                } else if (tabName === 'marked') {
+                    document.getElementById('markedImage').classList.remove('hidden');
+                }
+            });
+        });
+
+        // Kopyala-yapıştır işlemi
+        document.addEventListener('paste', handlePaste);
+
+        function handlePaste(e) {
+            e.preventDefault();
+            const items = e.clipboardData.items;
+
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const file = items[i].getAsFile();
+                    handleFile(file);
+                    break;
+                }
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                alert('Lütfen bir resim dosyası seçin!');
+                return;
+            }
+
+            try {
+                const base64 = await fileToBase64(file);
+                imagePreview.src = base64;
+                preview.classList.remove('hidden');
+
+                const formData = new FormData();
+                formData.append('image', file);
+
+                loading.classList.remove('hidden');
+                results.classList.add('hidden');
+
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                loading.classList.add('hidden');
+                results.classList.remove('hidden');
+                
+                displayDominantColors(data.colors);
+                displayAllColors(data.allColors);
+                displayMarkedImage(data.markedImage);
+                
+                // İlk tabı aktif yap
+                tabs[0].click();
+            } catch (error) {
+                loading.classList.add('hidden');
+                alert('Bir hata oluştu: ' + error);
+            }
+        }
+
+        function displayDominantColors(colors) {
+            colorList.innerHTML = '';
+            colors.forEach(color => {
+                const colorBox = document.createElement('div');
+                colorBox.className = 'color-box rounded-xl p-6 flex items-center space-x-6';
+                
+                const [r, g, b] = color.rgb.match(/\d+/g).map(Number);
+                const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+                const textColor = brightness > 128 ? 'text-gray-800' : 'text-gray-100';
+                
+                colorBox.innerHTML = `
+                    <div class="w-20 h-20 rounded-lg shadow-lg color-preview" style="background-color: ${color.hex}"></div>
+                    <div class="flex-1">
+                        <p class="text-lg font-medium ${textColor}">${color.hex}</p>
+                        <p class="text-sm text-indigo-300">${color.rgb}</p>
+                        <p class="text-sm text-indigo-300">Oran: %${color.percentage}</p>
+                    </div>
+                `;
+                colorList.appendChild(colorBox);
+            });
+        }
+
+        function displayAllColors(colors) {
+            allColorsList.innerHTML = '';
+            colors.forEach(color => {
+                const colorItem = document.createElement('div');
+                colorItem.className = 'color-item';
+                colorItem.style.backgroundColor = color.hex;
+                
+                colorItem.innerHTML = `
+                    <div class="color-info">
+                        <div>${color.hex}</div>
+                        <div>%${parseFloat(color.percentage).toFixed(1)}</div>
+                    </div>
+                `;
+                allColorsList.appendChild(colorItem);
+            });
+        }
+
+        function displayMarkedImage(base64Image) {
+            markedImagePreview.src = base64Image;
+        }
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            handleFile(file);
+        }
+    </script>
+</body>
+</html> 
